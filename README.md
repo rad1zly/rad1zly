@@ -1,4 +1,5 @@
-### Hi there 👋
+<h1 align="center">Hi there 👋 I'm rad1zly</h1>
+<h3 align="center">Junior Penetration Tester & Cyber Security Researcher</h3>
 
 <!--
 **rad1zly/rad1zly** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
