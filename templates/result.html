@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Open Eyes</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .entity-section {
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+        }
+        .checkbox {
+            margin-right: 10px;
+        }
+        .data-section {
+            margin-bottom: 20px;
+        }
+        .info-leak {
+            font-style: italic;
+            color: gray;
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .pagination a {
+            text-decoration: none;
+            padding: 10px;
+            background-color: #0056b3;
+            color: white;
+            border-radius: 5px;
+            margin: 0 5px;
+        }
+        .pagination a.disabled {
+            background-color: grey;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Hasil Pencarian</h1>
+        <p>Total Hasil: {{ total_results }}</p>
+
+        <!-- Loop melalui setiap entitas -->
+        {% for entity in entities %}
+            <div class="entity-section">
+                <!-- Checkbox untuk memilih entri -->
+                <input type="checkbox" class="checkbox" name="selected_entries" value="{{ entity.id }}"
+                {% if entity.id in selected_entity_ids %} checked {% endif %}
+                onchange="saveSelection({{ entity.id }}, this.checked)">
+                
+                <!-- Data entitas -->
+                <div>
+                    <h2>{{ entity.name }}</h2>
+
+                    <!-- Deskripsi InfoLeak -->
+                    <p class="info-leak">{{ entity.info_leak }}</p>
+
+                    <!-- Menampilkan data yang sudah ditambahkan emoji -->
+                    <div class="data-section">
+                        <ul>
+                            {% for data in entity.data %}
+                                <li>{{ data }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+
+        <!-- Tombol ekspor CSV -->
+        <form id="export-form" action="/export" method="POST">
+            {% for selected_id in selected_entity_ids %}
+                <input type="hidden" name="selected_entries" value="{{ selected_id }}">
+            {% endfor %}
+            <button type="button" onclick="exportData()">Export to CSV</button>
+        </form>
+
+        <!-- Pagination -->
+        <div class="pagination">
+            <!-- Link untuk setiap halaman -->
+            {% for page_num in range(1, total_pages + 1) %}
+                {% if page_num == page %}
+                    <a class="disabled">{{ page_num }}</a>
+                {% else %}
+                    <a href="{{ url_for('results', query=request.args.get('query'), page=page_num) }}">{{ page_num }}</a>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        function saveSelection(entityId, isChecked) {
+            const formData = new FormData();
+            formData.append('entity_id', entityId);
+            formData.append('is_checked', isChecked);
+
+            fetch('/save-selection', {
+                method: 'POST',
+                body: formData
+            }).then(response => {
+                if (!response.ok) {
+                    console.error('Failed to save selection.');
+                }
+            }).catch(error => {
+                console.error('Error:', error);
+            });
+        }
+
+        function exportData() {
+            const form = document.getElementById('export-form');
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
+            form.innerHTML = '';
+            checkboxes.forEach(checkbox => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'selected_entries';
+                input.value = checkbox.value;
+                form.appendChild(input);
+            });
+            form.submit();
+        }
+    </script>
+</body>
+</html>
